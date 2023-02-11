@@ -10,6 +10,9 @@ resources:
   repositories:
   - repository: 'https://github.com/raulrobinson/admin-service.git'
     type: git
+    name: 'SolucionesDigitales/admin-service'
+    trigger:
+    - main
 
   #No borrar, repositorios plantillas pipeline y release
   - repository: maven-tasks
