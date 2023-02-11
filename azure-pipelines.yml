@@ -12,7 +12,7 @@ resources:
     type: git
     name: 'SolucionesDigitales/admin-service'
     trigger:
-    - main
+    - main 
 
   #No borrar, repositorios plantillas pipeline y release
   - repository: maven-tasks
