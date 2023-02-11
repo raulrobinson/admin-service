@@ -8,6 +8,11 @@ trigger:
 
 resources:
   repositories:
+  - repository: https://github.com/raulrobinson/admin-service.git
+    type: git
+    name: 'SolucionesDigitales/admin-service'
+    trigger:
+    - main
   #No borrar, repositorios plantillas pipeline y release
   - repository: maven-tasks
     endpoint: AzureReposMoebiusSC
@@ -52,7 +57,7 @@ stages:
           projectName: $(Build.Repository.Name)
           repositoryName: $(Build.Repository.Name)
           containerRegistrySC: aproddevopsrc
-          buildBranch: dev
+          buildBranch: main
 - stage: dev_ContinuousDeployment
   displayName: CD stage
   dependsOn: Environment
@@ -74,4 +79,4 @@ stages:
             namespace: solucionesagiles
             secret: k8saproddevopsrcauth
             containerRegistrySC: aproddevopsrc
-            buildBranch: dev
+            buildBranch: main
