@@ -8,7 +8,7 @@ trigger:
 
 resources:
   repositories:
-  - repository: 'https://github.com/raulrobinson/admin-service.git'
+  - repository: admin-service
     type: git
     name: 'SolucionesDigitales/admin-service'
     trigger:
