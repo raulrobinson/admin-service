@@ -6,17 +6,72 @@
 trigger:
 - main
 
-pool:
-  vmImage: ubuntu-latest
+resources:
+  repositories:
+  #No borrar, repositorios plantillas pipeline y release
+  - repository: maven-tasks
+    endpoint: AzureReposMoebiusSC
+    type: git
+    name: plantillas/maven-tasks
+    trigger:
+    - none
+  - repository: app-services-tasks
+    endpoint: AzureReposMoebiusSC
+    type: git
+    name: plantillas/app-services-tasks
+    trigger:
+    - none
 
-steps:
-- task: Maven@3
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+stages:
+- stage: CI
+  displayName: CI Stage
+  jobs:
+    - job: build
+      displayName: Build
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+      - script: | 
+          echo "App: $(Build.Repository.Name). Last Commit: $(Build.SourceVersion)."
+        displayName: 'Repositorio a ejecutar'
+      - template: test-template.yml@dotnet-tasks
+        parameters:
+          organizationName: CelulaSulis
+          repositoryName: $(Build.Repository.Name)
+          sonarKeySC: 'sonar aks'
+- stage: Environment
+  displayName: Environment Stage
+  jobs:
+    - job: provisionEnvironment
+      displayName: Aprovisionar Ambiente
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+      - template: template.yml@docker-tasks
+        parameters:
+          projectName: $(Build.Repository.Name)
+          repositoryName: $(Build.Repository.Name)
+          containerRegistrySC: aproddevopsrc
+          buildBranch: dev
+- stage: dev_ContinuousDeployment
+  displayName: CD stage
+  dependsOn: Environment
+  jobs:
+    - deployment: deploy
+      displayName: Deploy desarrollo
+      pool:
+        vmImage: ubuntu-latest
+      environment: dev-solucionesagiles-aks
+      strategy:
+       runOnce:
+        deploy: 
+         steps:
+         - template: test-generic-release.yml@aks-tasks
+           parameters:
+            repositoryName: $(Build.Repository.Name)
+            projectName: $(Build.Repository.Name)
+            kubernetesSC: dev-solucionesagiles
+            namespace: solucionesagiles
+            secret: k8saproddevopsrcauth
+            containerRegistrySC: aproddevopsrc
+            buildBranch: dev
